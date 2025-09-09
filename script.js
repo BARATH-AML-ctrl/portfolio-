@@ -1,4 +1,26 @@
 // Detective Investigation Board Portfolio - JavaScript
+
+// Responsive adjustments for connection lines
+document.addEventListener("DOMContentLoaded", function () {
+  function handleResponsiveAdjustments() {
+    const isMobile = window.innerWidth <= 768;
+    const connectionLines = document.querySelector(".connection-lines");
+
+    if (connectionLines) {
+      if (isMobile) {
+        connectionLines.style.display = "none";
+      } else {
+        connectionLines.style.display = "block";
+      }
+    }
+  }
+
+  // Handle window resize for responsive adjustments
+  window.addEventListener("resize", handleResponsiveAdjustments);
+  handleResponsiveAdjustments(); // Initial call
+});
+
+// Modal and Investigation Board Functionality
 document.addEventListener("DOMContentLoaded", function () {
   // Enhanced hover effects for pinned items
   const pinnedItems = document.querySelectorAll(".pinned-item");
@@ -60,11 +82,47 @@ document.addEventListener("DOMContentLoaded", function () {
       resetRedLines();
     });
 
-    // Click event to open modal
+    // Click event to open modal with enhanced animation
     item.addEventListener("click", function () {
       const section = this.getAttribute("data-section");
-      openModal(section);
+      openModal(section, this); // Pass the clicked element
     });
+
+    // Add touch events for mobile devices
+    item.addEventListener(
+      "touchstart",
+      function (e) {
+        // Prevent default to avoid double-tap zoom on mobile
+        e.preventDefault();
+
+        // Add active state for touch feedback
+        this.classList.add("touch-active");
+
+        // Trigger hover effects on touch
+        this.dispatchEvent(new Event("mouseenter"));
+      },
+      { passive: false }
+    );
+
+    item.addEventListener(
+      "touchend",
+      function (e) {
+        e.preventDefault();
+
+        // Remove active state
+        this.classList.remove("touch-active");
+
+        // Open modal on touch end
+        const section = this.getAttribute("data-section");
+        openModal(section, this);
+
+        // Reset hover effects after a delay
+        setTimeout(() => {
+          this.dispatchEvent(new Event("mouseleave"));
+        }, 500);
+      },
+      { passive: false }
+    );
   });
 
   // Animate connected red lines
@@ -127,26 +185,28 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   }
 
-  // Modal functionality
-  function openModal(section) {
+  // Enhanced Modal functionality with zoom animation
+  function openModal(section, clickedElement) {
     const content = document.getElementById(section + "-content");
     if (content) {
+      // Add click pulse effect to photo
+      const photo = clickedElement.querySelector(".pinned-photo");
+      if (photo) {
+        photo.classList.add("clicked");
+        setTimeout(() => photo.classList.remove("clicked"), 300);
+      }
+
       modalBody.innerHTML = content.innerHTML;
       modal.style.display = "block";
 
+      // Add zoom-in animation class
+      modal.classList.add("zoom-in");
+      modal.classList.remove("zoom-out");
+
       // Add typewriter effect to modal content
-      addTypewriterEffect();
-
-      // Animate modal entrance
-      const modalContent = document.querySelector(".modal-content");
-      modalContent.style.transform = "scale(0.7) translateY(-50px)";
-      modalContent.style.opacity = "0";
-
       setTimeout(() => {
-        modalContent.style.transition = "all 0.3s ease";
-        modalContent.style.transform = "scale(1) translateY(0)";
-        modalContent.style.opacity = "1";
-      }, 10);
+        addTypewriterEffect();
+      }, 300);
     }
   }
 
@@ -162,13 +222,14 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   function closeModalFunction() {
-    const modalContent = document.querySelector(".modal-content");
-    modalContent.style.transform = "scale(0.7) translateY(-50px)";
-    modalContent.style.opacity = "0";
+    // Add zoom-out animation
+    modal.classList.add("zoom-out");
+    modal.classList.remove("zoom-in");
 
     setTimeout(() => {
       modal.style.display = "none";
-    }, 300);
+      modal.classList.remove("zoom-out");
+    }, 400);
   }
 
   // Typewriter effect for modal content
@@ -300,22 +361,6 @@ document.addEventListener("DOMContentLoaded", function () {
       openModal(sectionMap[e.key]);
     }
   });
-
-  // Add loading animation
-  function showLoadingAnimation() {
-    const board = document.querySelector(".cork-board");
-    board.style.opacity = "0";
-    board.style.transform = "scale(0.9)";
-
-    setTimeout(() => {
-      board.style.transition = "all 1s ease";
-      board.style.opacity = "1";
-      board.style.transform = "scale(1)";
-    }, 100);
-  }
-
-  // Initialize loading animation
-  showLoadingAnimation();
 
   // Add contact form functionality (if needed later)
   function initializeContactForm() {
